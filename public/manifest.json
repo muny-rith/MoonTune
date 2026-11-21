@@ -1,0 +1,16 @@
+{
+  "short_name": "MoonTune",
+  "name": "MoonTune - Video to Audio Converter",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "type": "image/svg+xml",
+      "sizes": "192x192 512x512"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#0B0F17",
+  "theme_color": "#00F0FF",
+  "display": "standalone",
+  "orientation": "portrait"
+}
