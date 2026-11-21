@@ -15,7 +15,7 @@ import { encodeMP3 } from './features/engine/services/mp3Encoder';
 import { extractVideoThumbnail } from './features/metadata/services/thumbnailExtractor';
 import { attachID3Tags } from './features/metadata/services/id3Tagger';
 import { cleanFileName, formatBytes } from './shared/utils/formatters';
-import { Zap, Music, Disc, AlertCircle } from 'lucide-react';
+import { Zap, AlertCircle } from 'lucide-react';
 import { useHaptic } from './shared/hooks/useHaptic';
 
 export default function App() {
@@ -23,15 +23,15 @@ export default function App() {
 
   // File & Media State
   const [videoFile, setVideoFile] = useState(null);
-  const [audioData, setAudioData] = useState(null); // { audioBuffer, duration, waveform }
-  const [thumbnail, setThumbnail] = useState(null); // { blob, dataUrl }
+  const [audioData, setAudioData] = useState(null);
+  const [thumbnail, setThumbnail] = useState(null);
 
   // Trimmer State
   const [trimStart, setTrimStart] = useState(0);
   const [trimEnd, setTrimEnd] = useState(0);
 
   // Settings & Format State
-  const [format, setFormat] = useState('mp3-320'); // 'm4a', 'mp3-320', 'mp3-192', 'wav'
+  const [format, setFormat] = useState('mp3-320');
   const [isMetadataOpen, setIsMetadataOpen] = useState(false);
   const [metadata, setMetadata] = useState({
     title: '',
@@ -46,7 +46,7 @@ export default function App() {
   const [errorMsg, setErrorMsg] = useState(null);
 
   // Output Audio & Preview Player State
-  const [outputAudio, setOutputAudio] = useState(null); // { blob, url, extension, sizeText }
+  const [outputAudio, setOutputAudio] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [playerCurrentTime, setPlayerCurrentTime] = useState(0);
   const audioPlayerRef = useRef(null);
@@ -90,7 +90,6 @@ export default function App() {
 
       setIsProcessing(true);
 
-      // Extract Audio and Thumbnail in parallel
       const [extractedAudio, extractedThumb] = await Promise.allSettled([
         extractAudioFromVideo(file, ({ percent, text }) => {
           setProgress(percent);
@@ -140,13 +139,11 @@ export default function App() {
         outputBlob = encodeWAV(audioData.audioBuffer, trimStart, trimEnd);
         setProgress(100);
       } else if (format === 'm4a') {
-        // Fast-path M4A or high-speed WAV fallback
         extension = 'm4a';
         setStatusText('Fast-path audio encoding...');
         outputBlob = encodeWAV(audioData.audioBuffer, trimStart, trimEnd);
         setProgress(100);
       } else {
-        // MP3 (320 or 192)
         extension = 'mp3';
         const bitrate = format === 'mp3-320' ? 320 : 192;
         setStatusText(`Encoding ${bitrate}kbps MP3...`);
@@ -159,7 +156,6 @@ export default function App() {
           }
         );
 
-        // Attach ID3 tags and cover art
         setStatusText('Embedding album art & ID3 tags...');
         outputBlob = await attachID3Tags(rawMp3, {
           title: metadata.title || 'Converted Audio',
@@ -180,7 +176,6 @@ export default function App() {
         sizeText
       });
 
-      // Prepare player
       if (audioPlayerRef.current) {
         audioPlayerRef.current.src = url;
         audioPlayerRef.current.load();
@@ -196,7 +191,6 @@ export default function App() {
     }
   };
 
-  // 1-Tap Download
   const handleDownload = () => {
     if (!outputAudio?.url) return;
     const cleanTitle = (metadata.title || 'MoonTune-Audio').replace(/[^a-zA-Z0-9_-]/g, '_');
@@ -208,7 +202,6 @@ export default function App() {
     document.body.removeChild(a);
   };
 
-  // Play / Pause Preview
   const handleTogglePlay = () => {
     const audio = audioPlayerRef.current;
     if (!audio) return;
@@ -223,7 +216,6 @@ export default function App() {
     }
   };
 
-  // Reset to initial state
   const handleReset = () => {
     if (audioPlayerRef.current) {
       audioPlayerRef.current.pause();
@@ -248,34 +240,31 @@ export default function App() {
 
   return (
     <MobileAppShell>
-      {/* Hidden audio element for preview */}
       <audio ref={audioPlayerRef} preload="auto" className="hidden" />
 
-      {/* Top Mobile Bar */}
+      {/* Top Navbar */}
       <Header hasFile={Boolean(videoFile)} onReset={handleReset} />
 
-      {/* Main Content Area */}
-      <main className="flex-1 flex flex-col justify-between overflow-y-auto">
+      {/* Main Responsive Body */}
+      <main className="flex-1 w-full flex flex-col justify-start">
         {!videoFile ? (
-          /* Step 1: Upload Dropzone */
           <VideoPickerCard
             onFileSelect={handleSelectVideo}
             isLoading={isProcessing}
           />
         ) : (
-          /* Step 2: Audio Loaded -> Trimmer & Settings */
-          <div className="flex-1 flex flex-col justify-between py-2 space-y-3">
-            <div>
-              {/* Video Info Card */}
-              <VideoPreviewCard
-                file={videoFile}
-                thumbnail={thumbnail?.dataUrl}
-                duration={audioData?.duration || 0}
-                onOpenMetadata={() => setIsMetadataOpen(true)}
-              />
+          <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6 animate-fade-in">
+            {/* Video Info Card */}
+            <VideoPreviewCard
+              file={videoFile}
+              thumbnail={thumbnail?.dataUrl}
+              duration={audioData?.duration || 0}
+              onOpenMetadata={() => setIsMetadataOpen(true)}
+            />
 
-              {/* Touch Waveform Trimmer */}
-              {audioData && (
+            {/* Waveform Trimmer */}
+            {audioData && (
+              <div className="bg-slate-900/60 border border-slate-800/80 rounded-3xl p-5 shadow-lg">
                 <TouchTrimmer
                   duration={audioData.duration}
                   waveform={audioData.waveform}
@@ -294,21 +283,21 @@ export default function App() {
                   }}
                   onTogglePlay={handleTogglePlay}
                 />
-              )}
-            </div>
+              </div>
+            )}
 
             {/* Error Banner */}
             {errorMsg && (
-              <div className="mx-5 p-3 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 shrink-0" />
+              <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex items-center gap-2">
+                <AlertCircle className="w-5 h-5 shrink-0" />
                 <span>{errorMsg}</span>
               </div>
             )}
 
-            {/* Format Selector & Convert CTA (Thumb-Zone) */}
-            <div className="px-5 pt-2 pb-4 space-y-3">
+            {/* Format Selector & Action Card */}
+            <div className="bg-slate-900/60 border border-slate-800/80 rounded-3xl p-5 sm:p-6 space-y-5 shadow-lg">
               <div>
-                <label className="text-xs font-semibold text-slate-400 block mb-2 px-1">
+                <label className="text-xs sm:text-sm font-semibold text-slate-300 block mb-2.5">
                   Output Format & Quality
                 </label>
                 <PillTabs
@@ -318,14 +307,10 @@ export default function App() {
                 />
               </div>
 
-              {/* Progress bar during extraction or conversion */}
               {isProcessing && (
-                <div className="pt-1">
-                  <ProgressBar percent={progress} statusText={statusText} />
-                </div>
+                <ProgressBar percent={progress} statusText={statusText} />
               )}
 
-              {/* Primary Action Button */}
               <Button
                 fullWidth
                 size="lg"

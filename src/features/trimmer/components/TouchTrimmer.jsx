@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { Scissors, Play, Pause } from 'lucide-react';
+import { Scissors } from 'lucide-react';
 import { formatTimePrecise } from '../../../shared/utils/formatters';
 import { useHaptic } from '../../../shared/hooks/useHaptic';
 
@@ -33,7 +33,7 @@ export function TouchTrimmer({
       const ratio = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
       const targetTime = ratio * duration;
 
-      const minGap = Math.min(0.5, duration * 0.05); // at least 0.5s cut
+      const minGap = Math.min(0.5, duration * 0.05);
 
       if (activeDrag === 'start') {
         const newStart = Math.min(targetTime, endTime - minGap);
@@ -66,7 +66,6 @@ export function TouchTrimmer({
     };
   }, [activeDrag, duration, startTime, endTime, onTrimChange, trigger]);
 
-  // Click on waveform to seek
   const handleWaveformClick = (e) => {
     if (activeDrag || !containerRef.current || duration <= 0) return;
     const rect = containerRef.current.getBoundingClientRect();
@@ -81,18 +80,18 @@ export function TouchTrimmer({
   const currentPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
 
   return (
-    <div className="px-5 py-3 space-y-2 select-none">
+    <div className="w-full space-y-2.5 select-none">
       {/* Header with times */}
-      <div className="flex items-center justify-between text-xs">
-        <div className="flex items-center gap-1 text-slate-400">
-          <Scissors className="w-3.5 h-3.5 text-cyan-400" />
+      <div className="flex items-center justify-between text-xs sm:text-sm">
+        <div className="flex items-center gap-1.5 text-slate-300">
+          <Scissors className="w-4 h-4 text-cyan-400" />
           <span>Cut:</span>
-          <span className="font-mono text-cyan-300 font-semibold">{formatTimePrecise(startTime)}</span>
+          <span className="font-mono text-cyan-300 font-bold">{formatTimePrecise(startTime)}</span>
           <span>to</span>
-          <span className="font-mono text-cyan-300 font-semibold">{formatTimePrecise(endTime)}</span>
+          <span className="font-mono text-cyan-300 font-bold">{formatTimePrecise(endTime)}</span>
         </div>
-        <div className="text-[11px] font-mono text-slate-400">
-          Clip: {formatTimePrecise(Math.max(0, endTime - startTime))}
+        <div className="text-xs font-mono text-slate-400 bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-800">
+          Selected Length: {formatTimePrecise(Math.max(0, endTime - startTime))}
         </div>
       </div>
 
@@ -100,7 +99,7 @@ export function TouchTrimmer({
       <div 
         ref={containerRef}
         onClick={handleWaveformClick}
-        className="relative h-20 bg-slate-900/90 border border-slate-800 rounded-2xl overflow-hidden cursor-pointer touch-none"
+        className="relative h-24 sm:h-28 bg-slate-900/90 border border-slate-800 rounded-2xl overflow-hidden cursor-pointer touch-none shadow-inner"
       >
         {/* Waveform Bars */}
         <div className="absolute inset-0 flex items-center justify-between px-3 gap-[2px]">
@@ -137,27 +136,27 @@ export function TouchTrimmer({
           <div className="w-2.5 h-2.5 bg-white rounded-full -ml-1 -mt-1 shadow-md" />
         </div>
 
-        {/* Left Trimmer Handle (48px Touch Target) */}
+        {/* Left Trimmer Handle */}
         <div
           onMouseDown={handlePointerDown('start')}
           onTouchStart={handlePointerDown('start')}
           style={{ left: `calc(${startPercent}% - 14px)` }}
           className="absolute inset-y-0 z-30 w-7 flex items-center justify-center cursor-ew-resize group"
         >
-          <div className="w-3.5 h-12 bg-cyan-400 rounded-lg shadow-lg shadow-cyan-500/50 flex flex-col items-center justify-center gap-1 group-active:scale-110 transition-transform">
+          <div className="w-4 h-14 bg-cyan-400 rounded-lg shadow-xl shadow-cyan-500/50 flex flex-col items-center justify-center gap-1 group-active:scale-110 transition-transform">
             <div className="w-0.5 h-3 bg-slate-950 rounded-full" />
             <div className="w-0.5 h-3 bg-slate-950 rounded-full" />
           </div>
         </div>
 
-        {/* Right Trimmer Handle (48px Touch Target) */}
+        {/* Right Trimmer Handle */}
         <div
           onMouseDown={handlePointerDown('end')}
           onTouchStart={handlePointerDown('end')}
           style={{ left: `calc(${endPercent}% - 14px)` }}
           className="absolute inset-y-0 z-30 w-7 flex items-center justify-center cursor-ew-resize group"
         >
-          <div className="w-3.5 h-12 bg-cyan-400 rounded-lg shadow-lg shadow-cyan-500/50 flex flex-col items-center justify-center gap-1 group-active:scale-110 transition-transform">
+          <div className="w-4 h-14 bg-cyan-400 rounded-lg shadow-xl shadow-cyan-500/50 flex flex-col items-center justify-center gap-1 group-active:scale-110 transition-transform">
             <div className="w-0.5 h-3 bg-slate-950 rounded-full" />
             <div className="w-0.5 h-3 bg-slate-950 rounded-full" />
           </div>
