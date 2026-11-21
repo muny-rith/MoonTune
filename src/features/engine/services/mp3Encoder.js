@@ -1,7 +1,7 @@
-import lamejs from 'lamejs';
+import { Mp3Encoder } from '@breezystack/lamejs';
 
 /**
- * Client-Side MP3 Encoder using lamejs
+ * Client-Side MP3 Encoder using @breezystack/lamejs (Modern ESM)
  * Encodes PCM AudioBuffer into MP3 with customizable bitrate and trimming
  */
 
@@ -38,8 +38,8 @@ export async function encodeMP3(audioBuffer, options = {}, onProgress) {
     rightInt16[i] = r < 0 ? r * 0x8000 : r * 0x7FFF;
   }
 
-  // Initialize Lame Mp3Encoder
-  const mp3Encoder = new lamejs.Mp3Encoder(numChannels, sampleRate, bitrate);
+  // Initialize Mp3Encoder
+  const mp3Encoder = new Mp3Encoder(numChannels, sampleRate, bitrate);
   const mp3Data = [];
 
   const sampleBlockSize = 1152;
@@ -56,22 +56,22 @@ export async function encodeMP3(audioBuffer, options = {}, onProgress) {
       mp3buf = mp3Encoder.encodeBuffer(leftChunk, rightChunk);
     }
 
-    if (mp3buf.length > 0) {
+    if (mp3buf && mp3buf.length > 0) {
       mp3Data.push(mp3buf);
     }
 
     // Report progress periodically
     const currentBlock = Math.floor(i / sampleBlockSize);
-    if (currentBlock % 15 === 0 && onProgress) {
+    if (currentBlock % 20 === 0 && onProgress) {
       const percent = Math.round((currentBlock / totalBlocks) * 100);
       onProgress(percent);
-      // Allow browser UI to breathe
+      // Give browser UI a micro-task tick
       await new Promise(resolve => setTimeout(resolve, 0));
     }
   }
 
   const endBuf = mp3Encoder.flush();
-  if (endBuf.length > 0) {
+  if (endBuf && endBuf.length > 0) {
     mp3Data.push(endBuf);
   }
 
